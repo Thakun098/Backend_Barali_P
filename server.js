@@ -16,9 +16,16 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 //     }
 //     )
-// db.accommodation.sync({ alter: true })
+// db.activity.sync({ alter: true })
 //     .then( () => {
-//         console.log("Table accommodation Altered")
+//         console.log("Table activity Altered")
+
+//     }
+//     )
+
+// db.booking.sync({ alter: true })
+//     .then( () => {
+//         console.log("Table booking Altered")
 
 //     }
 //     )
@@ -37,6 +44,7 @@ app.get('/', (req, res) => {
 
 require("./app/routes/auth.routes")(app);
 require("./app/routes/accommodation.routes")(app);
+require("./app/routes/activity.routes")(app);
 
 const port = process.env.SERVER_PORT || 5000;
 app.listen(port, () => {
