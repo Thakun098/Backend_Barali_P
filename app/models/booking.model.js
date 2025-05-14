@@ -53,6 +53,16 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false,
         },
+        adultGuests: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+        },
+        childGuests: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
+        },
         specialRequests: {
             type: Sequelize.TEXT,
             allowNull: true,
