@@ -26,9 +26,11 @@ db.sequelize = sequelize;
 db.user = require("../models/ีuser.model")(sequelize, Sequelize);
 db.role = require("../models/role.model")(sequelize, Sequelize);
 db.type = require("../models/type.model")(sequelize, Sequelize);
-db.accommodation = require("../models/accommodation.model")(sequelize, Sequelize);
+db.rooms = require("../models/accommodation.model")(sequelize, Sequelize);
 db.activity = require("../models/activity.model")(sequelize, Sequelize);
 db.booking = require("../models/booking.model")(sequelize, Sequelize);
+db.payment = require("../models/payment.model")(sequelize, Sequelize);
+db.facility = require("../models/facility.model")(sequelize, Sequelize);
 
 //Relationship (Many to Many)
 db.role.belongsToMany(db.user, {
@@ -37,27 +39,68 @@ db.role.belongsToMany(db.user, {
 db.user.belongsToMany(db.role, {
     through: "user_roles"
 });
+// Type
+db.type.belongsToMany(db.facility, {
+    through: "type_facilities",
+    as: "facilities",
+    foreignKey: "typeId"
+});
+
+// Facility
+db.facility.belongsToMany(db.type, {
+    through: "type_facilities",
+    as: "types",
+    foreignKey: "facilityId"
+});
 
 //Relationship (One to Many)
-db.type.hasMany(db.accommodation, {
-
+db.type.hasMany(db.rooms, {
+    as: "rooms",
     foreignKey: "type_id",
-    onDelete: "RESTRICT", 
-}
-); //หนึ่งประเภท มีหลายห้อง
-db.accommodation.belongsTo(db.type, {
+    onDelete: "RESTRICT",
+}); // หนึ่งประเภท มีหลายห้อง
 
-    foreignKey: "type_id"
-}
-); //ห้องหนึ่งห้อง มีประเภทเดียว
+db.rooms.belongsTo(db.type, {
+    as: "type",
+    foreignKey: "type_id",
+}); // ห้องหนึ่งห้อง มีประเภทเดียว
+
 db.user.hasMany(db.booking, {
     foreignKey: "userId",
-    onDelete: "RESTRICT"
+    onDelete: "RESTRICT",
 });
-db.accommodation.hasMany(db.booking, {
-    foreignKey: "accommodationId",
-    onDelete: "RESTRICT"
+
+db.booking.belongsTo(db.user, {
+    foreignKey: "userId",
+    onDelete: "RESTRICT",
 });
+
+db.rooms.hasMany(db.booking, {
+    as: "bookings",
+    foreignKey: "roomId",
+    onDelete: "RESTRICT",
+});
+
+db.booking.belongsTo(db.rooms, {
+    as: "room",
+    foreignKey: "roomId",
+});
+// One to One relationship
+// Payment Model
+db.payment.belongsTo(db.booking, {
+    foreignKey: {
+        name: 'bookingId',
+        allowNull: false,
+        unique: true
+    },
+    onDelete: 'CASCADE'
+});
+
+// Booking Model
+db.booking.hasOne(db.payment, {
+    foreignKey: 'bookingId'
+});
+
 
 
 module.exports = db;
