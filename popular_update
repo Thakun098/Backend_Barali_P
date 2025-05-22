@@ -5,7 +5,7 @@
 -- Dumped from database version 17.4 (Debian 17.4-1.pgdg120+2)
 -- Dumped by pg_dump version 17.4
 
--- Started on 2025-05-17 15:51:18 UTC
+-- Started on 2025-05-22 10:42:21 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -56,7 +56,7 @@ CREATE SEQUENCE public.activities_id_seq
 ALTER SEQUENCE public.activities_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3465 (class 0 OID 0)
+-- TOC entry 3493 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: activities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -103,7 +103,7 @@ CREATE SEQUENCE public.bookings_id_seq
 ALTER SEQUENCE public.bookings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3466 (class 0 OID 0)
+-- TOC entry 3494 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: bookings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -144,7 +144,7 @@ CREATE SEQUENCE public.facilities_id_seq
 ALTER SEQUENCE public.facilities_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3467 (class 0 OID 0)
+-- TOC entry 3495 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: facilities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -189,12 +189,55 @@ CREATE SEQUENCE public.payments_id_seq
 ALTER SEQUENCE public.payments_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3468 (class 0 OID 0)
+-- TOC entry 3496 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
+
+
+--
+-- TOC entry 236 (class 1259 OID 17710)
+-- Name: promotions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.promotions (
+    id integer NOT NULL,
+    name character varying(255),
+    discount numeric(5,2),
+    start_date timestamp with time zone,
+    end_date timestamp with time zone,
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.promotions OWNER TO postgres;
+
+--
+-- TOC entry 235 (class 1259 OID 17709)
+-- Name: promotions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.promotions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.promotions_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3497 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: promotions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.promotions_id_seq OWNED BY public.promotions.id;
 
 
 --
@@ -229,13 +272,28 @@ CREATE SEQUENCE public.roles_id_seq
 ALTER SEQUENCE public.roles_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3469 (class 0 OID 0)
+-- TOC entry 3498 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
 
+
+--
+-- TOC entry 237 (class 1259 OID 17716)
+-- Name: room_promotions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.room_promotions (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "promotionId" integer NOT NULL,
+    "roomId" integer NOT NULL
+);
+
+
+ALTER TABLE public.room_promotions OWNER TO postgres;
 
 --
 -- TOC entry 224 (class 1259 OID 17566)
@@ -246,11 +304,12 @@ CREATE TABLE public.rooms (
     id integer NOT NULL,
     type_id integer NOT NULL,
     description text,
-    "numberOfGuest" integer,
     price_per_night numeric(10,2) NOT NULL,
     image_name character varying(255),
     "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL
+    "updatedAt" timestamp with time zone NOT NULL,
+    max_adults integer,
+    max_children integer
 );
 
 
@@ -273,7 +332,7 @@ CREATE SEQUENCE public.rooms_id_seq
 ALTER SEQUENCE public.rooms_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3470 (class 0 OID 0)
+-- TOC entry 3499 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -295,6 +354,21 @@ CREATE TABLE public.type_facilities (
 
 
 ALTER TABLE public.type_facilities OWNER TO postgres;
+
+--
+-- TOC entry 238 (class 1259 OID 17731)
+-- Name: type_promotions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.type_promotions (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "promotionId" integer NOT NULL,
+    "typeId" integer NOT NULL
+);
+
+
+ALTER TABLE public.type_promotions OWNER TO postgres;
 
 --
 -- TOC entry 222 (class 1259 OID 17557)
@@ -331,7 +405,7 @@ CREATE SEQUENCE public.types_id_seq
 ALTER SEQUENCE public.types_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3471 (class 0 OID 0)
+-- TOC entry 3500 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -390,7 +464,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3472 (class 0 OID 0)
+-- TOC entry 3501 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -399,7 +473,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 3257 (class 2604 OID 17583)
+-- TOC entry 3270 (class 2604 OID 17583)
 -- Name: activities id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -407,7 +481,7 @@ ALTER TABLE ONLY public.activities ALTER COLUMN id SET DEFAULT nextval('public.a
 
 
 --
--- TOC entry 3258 (class 2604 OID 17592)
+-- TOC entry 3271 (class 2604 OID 17592)
 -- Name: bookings id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -415,7 +489,7 @@ ALTER TABLE ONLY public.bookings ALTER COLUMN id SET DEFAULT nextval('public.boo
 
 
 --
--- TOC entry 3265 (class 2604 OID 17688)
+-- TOC entry 3278 (class 2604 OID 17688)
 -- Name: facilities id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -423,7 +497,7 @@ ALTER TABLE ONLY public.facilities ALTER COLUMN id SET DEFAULT nextval('public.f
 
 
 --
--- TOC entry 3261 (class 2604 OID 17650)
+-- TOC entry 3274 (class 2604 OID 17650)
 -- Name: payments id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -431,7 +505,15 @@ ALTER TABLE ONLY public.payments ALTER COLUMN id SET DEFAULT nextval('public.pay
 
 
 --
--- TOC entry 3254 (class 2604 OID 17553)
+-- TOC entry 3279 (class 2604 OID 17713)
+-- Name: promotions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.promotions ALTER COLUMN id SET DEFAULT nextval('public.promotions_id_seq'::regclass);
+
+
+--
+-- TOC entry 3267 (class 2604 OID 17553)
 -- Name: roles id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -439,7 +521,7 @@ ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_
 
 
 --
--- TOC entry 3256 (class 2604 OID 17569)
+-- TOC entry 3269 (class 2604 OID 17569)
 -- Name: rooms id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -447,7 +529,7 @@ ALTER TABLE ONLY public.rooms ALTER COLUMN id SET DEFAULT nextval('public.rooms_
 
 
 --
--- TOC entry 3255 (class 2604 OID 17560)
+-- TOC entry 3268 (class 2604 OID 17560)
 -- Name: types id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -455,7 +537,7 @@ ALTER TABLE ONLY public.types ALTER COLUMN id SET DEFAULT nextval('public.types_
 
 
 --
--- TOC entry 3253 (class 2604 OID 17544)
+-- TOC entry 3266 (class 2604 OID 17544)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -463,7 +545,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 3451 (class 0 OID 17580)
+-- TOC entry 3475 (class 0 OID 17580)
 -- Dependencies: 226
 -- Data for Name: activities; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -473,21 +555,25 @@ COPY public.activities (id, name, image_name, "createdAt", "updatedAt") FROM std
 
 
 --
--- TOC entry 3453 (class 0 OID 17589)
+-- TOC entry 3477 (class 0 OID 17589)
 -- Dependencies: 228
 -- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.bookings (id, "userId", "roomId", "checkInDate", "checkOutDate", "specialRequests", "checkedIn", "checkedOut", "checkOutRating", "createdAt", "updatedAt") FROM stdin;
-2	2	2	2025-06-03 00:00:00+00	2025-06-07 00:00:00+00	Late check-in	f	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
 4	4	9	2025-05-29 00:00:00+00	2025-06-04 00:00:00+00	High floor	t	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
-3	3	5	2025-05-17 00:00:00+00	2025-06-10 00:00:00+00		t	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
-1	1	1	2025-06-01 00:00:00+00	2025-06-05 00:00:00+00	Near pool	f	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+2	1	2	2025-06-03 00:00:00+00	2025-06-07 00:00:00+00	Late check-in	f	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+5	1	4	2025-06-06 00:00:00+00	2025-07-01 00:00:00+00	Near pool	f	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+8	1	11	2025-06-01 00:00:00+00	2025-06-05 00:00:00+00	Near pool	f	f	\N	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+1	4	12	2025-05-01 00:00:00+00	2025-05-05 00:00:00+00	Near pool	t	t	4	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+3	1	5	2025-05-17 00:00:00+00	2025-05-20 00:00:00+00		t	t	5	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+7	4	1	2025-05-01 00:00:00+00	2025-05-05 00:00:00+00	Near pool	t	t	5	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
+6	4	10	2025-05-04 00:00:00+00	2025-05-09 00:00:00+00	High floor	t	t	5	2025-05-17 05:09:41.592+00	2025-05-17 05:09:41.592+00
 \.
 
 
 --
--- TOC entry 3458 (class 0 OID 17685)
+-- TOC entry 3482 (class 0 OID 17685)
 -- Dependencies: 233
 -- Data for Name: facilities; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -506,7 +592,7 @@ COPY public.facilities (id, name, icon_name, "createdAt", "updatedAt") FROM stdi
 
 
 --
--- TOC entry 3456 (class 0 OID 17647)
+-- TOC entry 3480 (class 0 OID 17647)
 -- Dependencies: 231
 -- Data for Name: payments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -520,47 +606,77 @@ COPY public.payments (id, "userId", "bookingId", "paymentStatus", "paymentMethod
 
 
 --
--- TOC entry 3445 (class 0 OID 17550)
+-- TOC entry 3485 (class 0 OID 17710)
+-- Dependencies: 236
+-- Data for Name: promotions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.promotions (id, name, discount, start_date, end_date, "createdAt", "updatedAt") FROM stdin;
+1	Summer Escape	62.00	2025-06-01 00:00:00+00	2025-08-31 00:00:00+00	2025-05-19 12:59:25.362+00	2025-05-19 12:59:25.362+00
+2	Summer Deal	60.00	2025-06-01 00:00:00+00	2025-08-31 00:00:00+00	2025-05-19 12:59:25.362+00	2025-05-19 12:59:25.362+00
+3	Room with Breakfast	0.00	\N	\N	2025-05-19 12:59:25.362+00	2025-05-19 12:59:25.362+00
+\.
+
+
+--
+-- TOC entry 3469 (class 0 OID 17550)
 -- Dependencies: 220
 -- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.roles (id, name, "createdAt", "updatedAt") FROM stdin;
+1	Admin	2025-05-21 00:00:00+00	2025-05-21 00:00:00+00
+2	Member	2025-05-21 00:00:00+00	2025-05-21 00:00:00+00
 \.
 
 
 --
--- TOC entry 3449 (class 0 OID 17566)
+-- TOC entry 3486 (class 0 OID 17716)
+-- Dependencies: 237
+-- Data for Name: room_promotions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.room_promotions ("createdAt", "updatedAt", "promotionId", "roomId") FROM stdin;
+2025-05-19 00:00:00+00	2025-05-19 00:00:00+00	1	1
+2025-05-19 00:00:00+00	2025-05-19 00:00:00+00	2	3
+2025-05-19 00:00:00+00	2025-05-19 00:00:00+00	1	5
+2025-05-19 00:00:00+00	2025-05-19 00:00:00+00	3	8
+2025-05-19 00:00:00+00	2025-05-19 00:00:00+00	2	7
+\.
+
+
+--
+-- TOC entry 3473 (class 0 OID 17566)
 -- Dependencies: 224
 -- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.rooms (id, type_id, description, "numberOfGuest", price_per_night, image_name, "createdAt", "updatedAt") FROM stdin;
-1	1	Spacious Deluxe Villa with garden view	4	12000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-2	1	Cozy Deluxe Villa near the pool	3	11000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-3	2	Premier Deluxe Villa with balcony	4	15000.00	premier-deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-4	2	Premier Deluxe Villa with jacuzzi	4	15500.00	premier-deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-5	3	BeachFront Villa with direct beach access	5	20000.00	beachfront-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-6	3	Private BeachFront Villa with pool	5	21000.00	beachfront-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-7	4	Pool Villa with private pool and garden	4	18000.00	pool-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-8	4	Modern Pool Villa with jacuzzi	4	18500.00	pool-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-9	5	Junior Suite Villa for couple with garden view	2	9000.00	junior-suite-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-10	5	Junior Suite Villa with pool view	2	9500.00	junior-suite-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00
-11	1	Spacious Deluxe Villa with garden view	4	12000.00	deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-12	1	Cozy Deluxe Villa near the pool	3	11000.00	deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-13	2	Premier Deluxe Villa with balcony	4	15000.00	premier-deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-14	2	Premier Deluxe Villa with jacuzzi	4	15500.00	premier-deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-15	3	BeachFront Villa with direct beach access	5	20000.00	beachfront-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-16	3	Private BeachFront Villa with pool	5	21000.00	beachfront-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-17	4	Pool Villa with private pool and garden	4	18000.00	pool-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-18	4	Modern Pool Villa with jacuzzi	4	18500.00	pool-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-19	5	Junior Suite Villa for couple with garden view	2	9000.00	junior-suite-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
-20	5	Junior Suite Villa with pool view	2	9500.00	junior-suite-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00
+COPY public.rooms (id, type_id, description, price_per_night, image_name, "createdAt", "updatedAt", max_adults, max_children) FROM stdin;
+13	2	Premier Deluxe Villa with balcony	15000.00	premier-deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+14	2	Premier Deluxe Villa with jacuzzi	15500.00	premier-deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+15	3	BeachFront Villa with direct beach access	20000.00	beachfront-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+16	3	Private BeachFront Villa with pool	21000.00	beachfront-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+17	4	Pool Villa with private pool and garden	18000.00	pool-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+18	4	Modern Pool Villa with jacuzzi	18500.00	pool-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+19	5	Junior Suite Villa for couple with garden view	9000.00	junior-suite-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+20	5	Junior Suite Villa with pool view	9500.00	junior-suite-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
+1	1	Spacious Deluxe Villa with garden view	12000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
+2	1	Cozy Deluxe Villa near the pool	11000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
+3	2	Premier Deluxe Villa with balcony	15000.00	premier-deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	3	3
+4	2	Premier Deluxe Villa with jacuzzi	15500.00	premier-deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	3	3
+5	3	BeachFront Villa with direct beach access	20000.00	beachfront-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	4	2
+6	3	Private BeachFront Villa with pool	21000.00	beachfront-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	4	2
+7	4	Pool Villa with private pool and garden	18000.00	pool-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	3	2
+8	4	Modern Pool Villa with jacuzzi	18500.00	pool-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	3	2
+9	5	Junior Suite Villa for couple with garden view	9000.00	junior-suite-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
+10	5	Junior Suite Villa with pool view	9500.00	junior-suite-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
+11	1	Spacious Deluxe Villa with garden view	12000.00	deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	4	2
+12	1	Cozy Deluxe Villa near the pool	11000.00	deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	4	2
 \.
 
 
 --
--- TOC entry 3459 (class 0 OID 17693)
+-- TOC entry 3483 (class 0 OID 17693)
 -- Dependencies: 234
 -- Data for Name: type_facilities; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -575,7 +691,17 @@ COPY public.type_facilities ("createdAt", "updatedAt", "typeId", "facilityId") F
 
 
 --
--- TOC entry 3447 (class 0 OID 17557)
+-- TOC entry 3487 (class 0 OID 17731)
+-- Dependencies: 238
+-- Data for Name: type_promotions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.type_promotions ("createdAt", "updatedAt", "promotionId", "typeId") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3471 (class 0 OID 17557)
 -- Dependencies: 222
 -- Data for Name: types; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -590,31 +716,35 @@ COPY public.types (id, name, room_size, view, bed_type, "createdAt", "updatedAt"
 
 
 --
--- TOC entry 3454 (class 0 OID 17609)
+-- TOC entry 3478 (class 0 OID 17609)
 -- Dependencies: 229
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.user_roles ("createdAt", "updatedAt", "roleId", "userId") FROM stdin;
+2025-05-21 00:00:00+00	2025-05-21 00:00:00+00	2	1
+2025-05-21 00:00:00+00	2025-05-21 00:00:00+00	2	4
+2025-05-21 00:00:00+00	2025-05-21 00:00:00+00	2	3
+2025-05-21 00:00:00+00	2025-05-21 00:00:00+00	2	2
 \.
 
 
 --
--- TOC entry 3443 (class 0 OID 17541)
+-- TOC entry 3467 (class 0 OID 17541)
 -- Dependencies: 218
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.users (id, firstname, lastname, phone, email, password, "createdAt", "updatedAt") FROM stdin;
-1	Alice	Anderson	0811111111	alice@example.com	password123	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
-2	Bob	Brown	0822222222	bob@example.com	password123	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
-3	Carol	Clark	0833333333	carol@example.com	password123	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
-4	Dave	Davis	0844444444	dave@example.com	password123	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
+1	Alice	Anderson	0811111111	alice@gmail.com	$2b$08$6X.LlOWMiO9cSpZnvqp3P.3QLhdgpfjIas6WZKSW.wjecgZ.1lTTu	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
+2	Bob	Brown	0822222222	bob@hotmail.com	$2b$08$6X.LlOWMiO9cSpZnvqp3P.3QLhdgpfjIas6WZKSW.wjecgZ.1lTTu	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
+3	Carol	Clark	0833333333	carol@outlook.com	$2b$08$6X.LlOWMiO9cSpZnvqp3P.3QLhdgpfjIas6WZKSW.wjecgZ.1lTTu	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
+4	Dave	Davis	0844444444	dave@northbkk.ac.th	$2b$08$6X.LlOWMiO9cSpZnvqp3P.3QLhdgpfjIas6WZKSW.wjecgZ.1lTTu	2025-05-17 04:46:40.632+00	2025-05-17 04:46:40.632+00
 \.
 
 
 --
--- TOC entry 3473 (class 0 OID 0)
+-- TOC entry 3502 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: activities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -623,16 +753,16 @@ SELECT pg_catalog.setval('public.activities_id_seq', 1, false);
 
 
 --
--- TOC entry 3474 (class 0 OID 0)
+-- TOC entry 3503 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: bookings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.bookings_id_seq', 4, true);
+SELECT pg_catalog.setval('public.bookings_id_seq', 8, true);
 
 
 --
--- TOC entry 3475 (class 0 OID 0)
+-- TOC entry 3504 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: facilities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -641,7 +771,7 @@ SELECT pg_catalog.setval('public.facilities_id_seq', 9, true);
 
 
 --
--- TOC entry 3476 (class 0 OID 0)
+-- TOC entry 3505 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: payments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -650,16 +780,25 @@ SELECT pg_catalog.setval('public.payments_id_seq', 4, true);
 
 
 --
--- TOC entry 3477 (class 0 OID 0)
+-- TOC entry 3506 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: promotions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.promotions_id_seq', 3, false);
+
+
+--
+-- TOC entry 3507 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.roles_id_seq', 1, false);
+SELECT pg_catalog.setval('public.roles_id_seq', 2, true);
 
 
 --
--- TOC entry 3478 (class 0 OID 0)
+-- TOC entry 3508 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: rooms_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -668,7 +807,7 @@ SELECT pg_catalog.setval('public.rooms_id_seq', 20, true);
 
 
 --
--- TOC entry 3479 (class 0 OID 0)
+-- TOC entry 3509 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -677,7 +816,7 @@ SELECT pg_catalog.setval('public.types_id_seq', 5, true);
 
 
 --
--- TOC entry 3480 (class 0 OID 0)
+-- TOC entry 3510 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -686,7 +825,7 @@ SELECT pg_catalog.setval('public.users_id_seq', 1, false);
 
 
 --
--- TOC entry 3275 (class 2606 OID 17587)
+-- TOC entry 3289 (class 2606 OID 17587)
 -- Name: activities activities_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -695,7 +834,7 @@ ALTER TABLE ONLY public.activities
 
 
 --
--- TOC entry 3277 (class 2606 OID 17598)
+-- TOC entry 3291 (class 2606 OID 17598)
 -- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -704,7 +843,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3285 (class 2606 OID 17692)
+-- TOC entry 3299 (class 2606 OID 17692)
 -- Name: facilities facilities_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -713,7 +852,7 @@ ALTER TABLE ONLY public.facilities
 
 
 --
--- TOC entry 3281 (class 2606 OID 17657)
+-- TOC entry 3295 (class 2606 OID 17657)
 -- Name: payments payments_bookingId_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -722,7 +861,7 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- TOC entry 3283 (class 2606 OID 17655)
+-- TOC entry 3297 (class 2606 OID 17655)
 -- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -731,7 +870,16 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- TOC entry 3269 (class 2606 OID 17555)
+-- TOC entry 3303 (class 2606 OID 17715)
+-- Name: promotions promotions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.promotions
+    ADD CONSTRAINT promotions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3283 (class 2606 OID 17555)
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -740,7 +888,16 @@ ALTER TABLE ONLY public.roles
 
 
 --
--- TOC entry 3273 (class 2606 OID 17573)
+-- TOC entry 3305 (class 2606 OID 17720)
+-- Name: room_promotions room_promotions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.room_promotions
+    ADD CONSTRAINT room_promotions_pkey PRIMARY KEY ("promotionId", "roomId");
+
+
+--
+-- TOC entry 3287 (class 2606 OID 17573)
 -- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -749,7 +906,7 @@ ALTER TABLE ONLY public.rooms
 
 
 --
--- TOC entry 3287 (class 2606 OID 17697)
+-- TOC entry 3301 (class 2606 OID 17697)
 -- Name: type_facilities type_facilities_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -758,7 +915,16 @@ ALTER TABLE ONLY public.type_facilities
 
 
 --
--- TOC entry 3271 (class 2606 OID 17564)
+-- TOC entry 3307 (class 2606 OID 17735)
+-- Name: type_promotions type_promotions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.type_promotions
+    ADD CONSTRAINT type_promotions_pkey PRIMARY KEY ("promotionId", "typeId");
+
+
+--
+-- TOC entry 3285 (class 2606 OID 17564)
 -- Name: types types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -767,7 +933,7 @@ ALTER TABLE ONLY public.types
 
 
 --
--- TOC entry 3279 (class 2606 OID 17613)
+-- TOC entry 3293 (class 2606 OID 17613)
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -776,7 +942,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 3267 (class 2606 OID 17548)
+-- TOC entry 3281 (class 2606 OID 17548)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -785,7 +951,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3289 (class 2606 OID 17604)
+-- TOC entry 3309 (class 2606 OID 17604)
 -- Name: bookings bookings_roomId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -794,7 +960,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3290 (class 2606 OID 17599)
+-- TOC entry 3310 (class 2606 OID 17599)
 -- Name: bookings bookings_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -803,7 +969,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- TOC entry 3293 (class 2606 OID 17673)
+-- TOC entry 3313 (class 2606 OID 17673)
 -- Name: payments payments_bookingId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -812,7 +978,7 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- TOC entry 3294 (class 2606 OID 17668)
+-- TOC entry 3314 (class 2606 OID 17668)
 -- Name: payments payments_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -821,7 +987,25 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- TOC entry 3288 (class 2606 OID 17574)
+-- TOC entry 3317 (class 2606 OID 17721)
+-- Name: room_promotions room_promotions_promotionId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.room_promotions
+    ADD CONSTRAINT "room_promotions_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES public.promotions(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3318 (class 2606 OID 17726)
+-- Name: room_promotions room_promotions_roomId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.room_promotions
+    ADD CONSTRAINT "room_promotions_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES public.rooms(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3308 (class 2606 OID 18366)
 -- Name: rooms rooms_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -830,7 +1014,7 @@ ALTER TABLE ONLY public.rooms
 
 
 --
--- TOC entry 3295 (class 2606 OID 17703)
+-- TOC entry 3315 (class 2606 OID 17703)
 -- Name: type_facilities type_facilities_facilityId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -839,7 +1023,7 @@ ALTER TABLE ONLY public.type_facilities
 
 
 --
--- TOC entry 3296 (class 2606 OID 17698)
+-- TOC entry 3316 (class 2606 OID 17698)
 -- Name: type_facilities type_facilities_typeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -848,7 +1032,25 @@ ALTER TABLE ONLY public.type_facilities
 
 
 --
--- TOC entry 3291 (class 2606 OID 17614)
+-- TOC entry 3319 (class 2606 OID 17736)
+-- Name: type_promotions type_promotions_promotionId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.type_promotions
+    ADD CONSTRAINT "type_promotions_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES public.promotions(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3320 (class 2606 OID 17741)
+-- Name: type_promotions type_promotions_typeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.type_promotions
+    ADD CONSTRAINT "type_promotions_typeId_fkey" FOREIGN KEY ("typeId") REFERENCES public.types(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3311 (class 2606 OID 17614)
 -- Name: user_roles user_roles_roleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -857,7 +1059,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 3292 (class 2606 OID 17619)
+-- TOC entry 3312 (class 2606 OID 17619)
 -- Name: user_roles user_roles_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -865,7 +1067,7 @@ ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT "user_roles_userId_fkey" FOREIGN KEY ("userId") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
--- Completed on 2025-05-17 15:51:18 UTC
+-- Completed on 2025-05-22 10:42:21 UTC
 
 --
 -- PostgreSQL database dump complete

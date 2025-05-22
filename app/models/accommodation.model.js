@@ -6,18 +6,22 @@ module.exports = (sequelize, Sequelize) => {
             autoIncrement: true
         },
         type_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'types', // ชื่อตาราง type ใน DB
-            key: 'id'
-        }
-    },
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'types',
+                key: 'id'
+            }
+        },
         description: {
             type: Sequelize.TEXT,
             allowNull: true
         },
-        numberOfGuest: {
+        max_adults: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        max_children: {
             type: Sequelize.INTEGER,
             allowNull: true
         },
@@ -29,7 +33,6 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: true
         }
-
     });
     return Room;
 }

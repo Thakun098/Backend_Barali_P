@@ -31,6 +31,7 @@ db.activity = require("../models/activity.model")(sequelize, Sequelize);
 db.booking = require("../models/booking.model")(sequelize, Sequelize);
 db.payment = require("../models/payment.model")(sequelize, Sequelize);
 db.facility = require("../models/facility.model")(sequelize, Sequelize);
+db.promotion = require("../models/promotion.model")(sequelize, Sequelize);
 
 //Relationship (Many to Many)
 db.role.belongsToMany(db.user, {
@@ -39,19 +40,39 @@ db.role.belongsToMany(db.user, {
 db.user.belongsToMany(db.role, {
     through: "user_roles"
 });
-// Type
+// Facility
 db.type.belongsToMany(db.facility, {
     through: "type_facilities",
     as: "facilities",
     foreignKey: "typeId"
 });
-
-// Facility
 db.facility.belongsToMany(db.type, {
     through: "type_facilities",
     as: "types",
     foreignKey: "facilityId"
 });
+
+// Promotion
+db.promotion.belongsToMany(db.rooms, {
+    through: "room_promotions",
+    as: "rooms",
+    foreignKey: "promotionId"
+});
+db.rooms.belongsToMany(db.promotion, {
+    through: "room_promotions",
+    as: "promotions",
+    foreignKey: "roomId"
+});
+// db.promotion.belongsToMany(db.type, {
+//     through: "type_promotions",
+//     as: "types",
+//     foreignKey: "promotionId"
+// });
+// db.type.belongsToMany(db.promotion, {
+//     through: "type_promotions",
+//     as: "promotions",
+//     foreignKey: "typeId"
+// });
 
 //Relationship (One to Many)
 db.type.hasMany(db.rooms, {
@@ -84,6 +105,14 @@ db.rooms.hasMany(db.booking, {
 db.booking.belongsTo(db.rooms, {
     as: "room",
     foreignKey: "roomId",
+});
+db.user.hasMany(db.payment, {
+    foreignKey: "userId",
+    onDelete: "RESTRICT",
+});
+db.payment.belongsTo(db.user, {
+    foreignKey: "userId",
+    onDelete: "RESTRICT",
 });
 // One to One relationship
 // Payment Model

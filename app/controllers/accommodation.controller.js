@@ -1,10 +1,12 @@
 const db = require("../models/");
-const { Op } = require("sequelize");
+const Sequelize = require("sequelize");
+const { Op, where } = require("sequelize");
 
 const Rooms = db.rooms;
 const Type = db.type;
 const Booking = db.booking;
 const Facility = db.facility;
+const Promotion = db.promotion;
 
 exports.getAll = async (req, res) => {
     try {
@@ -36,14 +38,28 @@ exports.getAll = async (req, res) => {
 exports.getPromotion = async (req, res) => {
     try {
         const promotion = await Rooms.findAll({
-            where: {
-                discount: { [Op.ne]: null }
-            },
             include: [
                 {
                     model: Type,
                     as: "type",
-                    attributes: ["name"]
+                    attributes: ["name"],
+                    include: [
+                        {
+                            model: Facility,
+                            as: "facilities",
+                            attributes: ["name"],
+                            through: {
+                                attributes: [] // Exclude the join table attributes
+                            }
+                        }
+                    ]
+                },
+                {
+                    model: Promotion,
+                    as: "promotions",
+                    required: true, //  ให้ return เฉพาะที่ JOIN แล้วมี promotion
+                    through: { attributes: [] }, // ซ่อนข้อมูลในตาราง join
+                    attributes: ["name", "discount"]
                 }
             ]
         });
@@ -63,13 +79,18 @@ exports.getPopularRoom = async (req, res) => {
                 {
                     model: Type,
                     as: "type",
-                    attributes: ["name ", "room_size", "view", "bed_type"],
+                    attributes: ["name", "room_size", "view", "bed_type"],
 
                 },
+                {
+                    model: Booking,
+                    as: "bookings",
+                    
+                }
 
             ],
         });
-
+        // res.send(rooms)
         const popularRooms = rooms.map(room => {
             const roomData = room.toJSON();
             const bookings = roomData.bookings || [];
@@ -112,65 +133,99 @@ exports.getPopularRoom = async (req, res) => {
 
         res.status(200).json(filteredRooms);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching popular rooms" });
+        res.status(500).json({ message: "Error fetching popular rooms" + error });
     }
 };
 
+
 exports.getSearch = async (req, res) => {
     try {
-        const { checkIn, checkOut, guests, selectedTypes } = req.query;
-        // res.send("checkIn: " + checkIn + " checkOut: " + checkOut + " guests: " + guests + " selectedTypes: " + selectedTypes);
+        // Parse query parameters with fallback/default
+        const checkIn = req.query.checkIn;
+        const checkOut = req.query.checkOut;
+        const adults = parseInt(req.query.adults) || 1;
+        const children = parseInt(req.query.children) || 0;
+        const selectedTypes = req.query.selectedTypes || "";
 
+        // Validate required dates
         if (!checkIn || !checkOut) {
-            return res.status(400).json({ message: "Please provide checkIn and checkOut" });
+            return res.status(400).json({ message: "Please provide checkIn and checkOut dates." });
         }
 
+        // Find rooms with availability and matching filters
         const rooms = await Rooms.findAll({
             include: [
+                {
+                    model: Booking,
+                    as: "bookings",
+                    required: false,
+                    attributes: [],
+                    where: {
+                        checkedOut: false,
+                        [Op.or]: [
+                            {
+                                checkInDate: { [Op.between]: [checkIn, checkOut] }
+                            },
+                            {
+                                checkOutDate: { [Op.between]: [checkIn, checkOut] }
+                            },
+                            {
+                                checkInDate: { [Op.lte]: checkIn },
+                                checkOutDate: { [Op.gte]: checkOut }
+                            }
+                        ]
+                    }
+                },
                 {
                     model: Type,
                     as: "type",
                     attributes: ["name"],
-                    where: {
+                    where: selectedTypes ? {
                         name: { [Op.like]: `%${selectedTypes}%` }
-                    },
+                    } : undefined,
                     include: [
                         {
                             model: Facility,
                             as: "facilities",
                             attributes: ["name"],
-                            through: {
-                                attributes: [] // Exclude the join table attributes
-                            }
+                            through: { attributes: [] }
                         }
                     ]
-                },
-
+                }
             ],
             where: {
-                numberOfGuest: { [Op.gte]: guests }
+                [Op.and]: [
+                    Sequelize.literal(`"rooms"."max_adults" >= ${adults}`),
+                    Sequelize.literal(`"rooms"."max_children" >= ${children}`),
+                    Sequelize.literal(`"rooms"."max_adults" + "rooms"."max_children" >= ${adults + children}`)
+                ]
             }
         });
 
-        return res.status(200).json(rooms);
+        res.status(200).json(rooms);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching Rooms" });
+        console.error("Search error:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
+
 
 exports.getRoomCountByType = async (req, res) => {
     try {
         const { checkIn, checkOut } = req.query;
+        // console.log("checkIn", checkIn, "checkOut", checkOut);
 
         if (!checkIn || !checkOut) {
             return res.status(400).json({ message: "Please provide checkIn and checkOut dates" });
         }
 
         const types = await Type.findAll({
+            attributes: ['id', 'name'],
             include: [
                 {
                     model: Rooms,
                     as: "rooms",
+                    attributes: ['id'],
                     include: [
                         {
                             model: Booking,
@@ -194,22 +249,13 @@ exports.getRoomCountByType = async (req, res) => {
                 .filter(room => (room.bookings || []).length > 0)
                 .map(room => room.id);
 
-            const bookedRoomCount = bookedRoomId.length;
-
-            const totalRooms = rooms.length;
-            const availableRooms = rooms.filter(room => {
-                const activeBookings = room.bookings || [];
-                return activeBookings.length === 0;
-            }).length;
-
             return {
                 typeId: type.id,
                 typeName: type.name,
-                totalRooms,
-                availableRooms,
+                totalRooms: rooms.length,
+                availableRooms: rooms.length - bookedRoomId.length,
                 bookedRoomId,
-                bookedRoomCount,
-
+                bookedRoomCount: bookedRoomId.length,
             };
         });
 
@@ -220,8 +266,9 @@ exports.getRoomCountByType = async (req, res) => {
     }
 };
 
+
 exports.getAvailableRooms = async (req, res) => {
-    const { checkIn, checkOut, guests, selectedTypes } = req.query;
+    const { checkIn, checkOut} = req.query;
     // res.send("checkIn: " + checkIn + " checkOut: " + checkOut + " guests: " + guests + " selectedTypes: " + selectedTypes);
 
     // ตรวจสอบว่ามีการส่ง checkIn และ checkOut มาหรือไม่
@@ -254,30 +301,37 @@ exports.getAvailableRooms = async (req, res) => {
                                 checkOutDate: { [Op.gte]: checkOut }
                             }
                         ]
-                    }
+                    },
+                    attributes: ["id"],
                 },
                 {
                     model: Type,
                     as: "type",
                     attributes: ["name"],
-                    where: {
-                        name: { [Op.like]: `%${selectedTypes}%` }
-                    }
                 }
             ],
-            where: {
-                numberOfGuest: { [Op.gte]: guests }
-            }
         });
 
         // กรองเอาห้องที่ไม่มี booking ทับช่วงเวลานั้น (rooms ที่ไม่มี booking ใน include)
-        const availableRooms = rooms.filter(room => room.bookings.length === 0);
+        // const availableRooms = rooms.filter(room => room.bookings.length === 0);
 
-        return res.status(200).json(availableRooms);
+        return res.status(200).json(rooms);
 
     } catch (error) {
         console.error("Error checking available rooms:", error);
         throw error;
+    }
+}
+
+exports.getAllTypes = async (req, res) => {
+    try {
+
+        const types = await Type.findAll();
+        res.status(200).json(types)
+        
+    } catch (error) {
+        res.status(500).json({message: "error get types"})
+        
     }
 }
 

@@ -16,9 +16,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 //     }
 //     )
-// db.payment.sync({ alter: true })
+// db.rooms.sync({ alter: true })
 //     .then( () => {
-//         console.log("Table payment Altered ✅")
+//         console.log("Table room Altered ✅")
 
 //     }
 //     )
@@ -33,26 +33,41 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 
 
-// async function seedRooms() {
+// async function seedPromotions() {
 //   try {
-//     await db.facility.bulkCreate([
-//   { name: "อาหารเช้า" },
-//   { name: "ไดร์เป่าผม" },
-//   { name: "ที่จอดรถ" },
-//   { name: "ฟรี WIFI" },
-//   { name: "ตู้เย็น" },
-//   { name: "รองเท้าแตะ" },
-//   { name: "โต๊ะทำงาน" },
-//   { name: "กระดาษชำระ" },
-//   { name: "ร่ม" }
-// ]);
-//     console.log("✅ Inserted mock room data successfully");
+//     await db.sequelize.sync();  // เชื่อมต่อ DB และ sync models
+
+//     await db.promotion.bulkCreate([
+//       {
+//         name: "Summer Escape",
+//         discount: 62.00,
+//         start_date: new Date("2025-06-01"),
+//         end_date: new Date("2025-08-31"),
+//       },
+//       {
+//         name: "Summer Deal",
+//         discount: 60.00,
+//         start_date: new Date("2025-06-01"),
+//         end_date: new Date("2025-08-31"),
+//       },
+//       {
+//         name: "Room with Breakfast",
+//         discount: 0.00,
+//         start_date: null,
+//         end_date: null,
+//       }
+//     ]);
+
+//     console.log("✅ Inserted mock promotion data successfully");
+
 //   } catch (err) {
-//     console.error("❌ Error inserting room data:", err);
+//     console.error("❌ Error inserting promotion data:", err);
+//   } finally {
+//     await db.sequelize.close();
 //   }
 // }
 
-// seedRooms();
+// seedPromotions();
 
 db.sequelize.sync({ force: false })
     .then(() => {
@@ -70,6 +85,7 @@ require("./app/routes/auth.routes")(app);
 require("./app/routes/accommodation.routes")(app);
 require("./app/routes/activity.routes")(app);
 require("./app/routes/user.routes")(app);
+require("./app/routes/caltest.routes")(app);
 
 const port = process.env.SERVER_PORT || 5000;
 app.listen(port, () => {

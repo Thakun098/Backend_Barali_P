@@ -11,6 +11,9 @@ const jwt = require("jsonwebtoken");
 exports.signin = (req, res) => {
     // const genPass = bcrypt.hashSync(req.body.password, 8);
     // res.send(genPass);
+    // const length = genPass.length;
+    // console.log("Length of password: " + length);
+    
     const { email, password } = req.body
     console.log(email, password)
     User.findOne({
