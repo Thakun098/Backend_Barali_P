@@ -268,60 +268,83 @@ exports.getRoomCountByType = async (req, res) => {
 
 
 exports.getAvailableRooms = async (req, res) => {
-    const { checkIn, checkOut} = req.query;
-    // res.send("checkIn: " + checkIn + " checkOut: " + checkOut + " guests: " + guests + " selectedTypes: " + selectedTypes);
+    const { checkIn, checkOut } = req.query;
 
-    // ตรวจสอบว่ามีการส่ง checkIn และ checkOut มาหรือไม่
     if (!checkIn || !checkOut) {
         return res.status(400).json({ message: "Please provide checkIn and checkOut dates" });
     }
+
     try {
-        // ดึงห้องทั้งหมดพร้อมจองที่ทับช่วงวันที่เข้ามา
+        // ดึงห้องทั้งหมด พร้อมประเภท และการจองที่อาจทับวัน
         const rooms = await Rooms.findAll({
             include: [
                 {
                     model: Booking,
                     as: "bookings",
-                    required: false, // ดึงห้องที่มีหรือไม่มี booking ก็ได้
+                    required: false,
                     where: {
-                        checkedOut: false, // ห้องที่ยังไม่ถูกเช็กเอาท์
+                        checkedOut: false,
                         [Op.or]: [
-                            {
-                                checkInDate: {
-                                    [Op.between]: [checkIn, checkOut]
-                                }
-                            },
-                            {
-                                checkOutDate: {
-                                    [Op.between]: [checkIn, checkOut]
-                                }
-                            },
+                            { checkInDate: { [Op.between]: [checkIn, checkOut] } },
+                            { checkOutDate: { [Op.between]: [checkIn, checkOut] } },
                             {
                                 checkInDate: { [Op.lte]: checkIn },
                                 checkOutDate: { [Op.gte]: checkOut }
                             }
                         ]
                     },
-                    attributes: ["id"],
+                    attributes: ["id"]
                 },
                 {
                     model: Type,
                     as: "type",
-                    attributes: ["name"],
+                    attributes: ["id", "name"]
                 }
-            ],
+            ]
         });
 
-        // กรองเอาห้องที่ไม่มี booking ทับช่วงเวลานั้น (rooms ที่ไม่มี booking ใน include)
-        // const availableRooms = rooms.filter(room => room.bookings.length === 0);
+        // เตรียม object สำหรับเก็บข้อมูลประเภท
+        const roomTypeMap = {};
 
-        return res.status(200).json(rooms);
+        rooms.forEach(room => {
+            const typeId = room.type?.id;
+            const typeName = room.type?.name || "Unknown";
+
+            if (!roomTypeMap[typeId]) {
+                roomTypeMap[typeId] = {
+                    typeId,
+                    typeName,
+                    totalRooms: 0,
+                    bookedRoomId: [],
+                    bookedRoomCount: 0,
+                    availableRooms: 0
+                };
+            }
+
+            // บวกจำนวนห้องทั้งหมดของประเภทนี้
+            roomTypeMap[typeId].totalRooms += 1;
+
+            // ถ้าห้องนี้ถูกจองในช่วงวันนั้น
+            if (room.bookings.length > 0) {
+                roomTypeMap[typeId].bookedRoomId.push(room.id);
+                roomTypeMap[typeId].bookedRoomCount += 1;
+            } else {
+                roomTypeMap[typeId].availableRooms += 1;
+            }
+        });
+
+        // แปลงจาก object เป็น array เพื่อส่งกลับ
+        const result = Object.values(roomTypeMap);
+
+        return res.status(200).json({ availableByType: result });
 
     } catch (error) {
         console.error("Error checking available rooms:", error);
-        throw error;
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
+
+
 
 exports.getAllTypes = async (req, res) => {
     try {

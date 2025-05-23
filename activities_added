@@ -5,7 +5,7 @@
 -- Dumped from database version 17.4 (Debian 17.4-1.pgdg120+2)
 -- Dumped by pg_dump version 17.4
 
--- Started on 2025-05-22 10:42:21 UTC
+-- Started on 2025-05-23 06:37:58 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -551,6 +551,11 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 --
 
 COPY public.activities (id, name, image_name, "createdAt", "updatedAt") FROM stdin;
+1	งานแต่งริมหาด	wedding-3.jpg	2025-05-23 00:00:00+00	2025-05-23 00:00:00+00
+3	ปิคนิคริมหาด	beach-activities-2.jpg	2025-05-23 00:00:00+00	2025-05-23 00:00:00+00
+4	กิจกรรมริมหาด	beach-activities.jpg	2025-05-23 00:00:00+00	2025-05-23 00:00:00+00
+5	ปิ้งย่างริมหาด	beach-food.jpg	2025-05-23 00:00:00+00	2025-05-23 00:00:00+00
+2	มื้อเย็นริมหาด	beach-dinner.jpg	2025-05-23 00:00:00+00	2025-05-23 00:00:00+00
 \.
 
 
@@ -660,7 +665,6 @@ COPY public.rooms (id, type_id, description, price_per_night, image_name, "creat
 18	4	Modern Pool Villa with jacuzzi	18500.00	pool-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
 19	5	Junior Suite Villa for couple with garden view	9000.00	junior-suite-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
 20	5	Junior Suite Villa with pool view	9500.00	junior-suite-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	\N	\N
-1	1	Spacious Deluxe Villa with garden view	12000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
 2	1	Cozy Deluxe Villa near the pool	11000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
 3	2	Premier Deluxe Villa with balcony	15000.00	premier-deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	3	3
 4	2	Premier Deluxe Villa with jacuzzi	15500.00	premier-deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	3	3
@@ -672,6 +676,7 @@ COPY public.rooms (id, type_id, description, price_per_night, image_name, "creat
 10	5	Junior Suite Villa with pool view	9500.00	junior-suite-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
 11	1	Spacious Deluxe Villa with garden view	12000.00	deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	4	2
 12	1	Cozy Deluxe Villa near the pool	11000.00	deluxe-villa.jpg	2025-05-17 04:45:31.77+00	2025-05-17 04:45:31.77+00	4	2
+1	1	Spacious Deluxe Villa with garden view	8000.00	deluxe-villa.jpg	2025-05-17 04:38:35.268+00	2025-05-17 04:38:35.268+00	2	2
 \.
 
 
@@ -749,7 +754,7 @@ COPY public.users (id, firstname, lastname, phone, email, password, "createdAt",
 -- Name: activities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.activities_id_seq', 1, false);
+SELECT pg_catalog.setval('public.activities_id_seq', 5, true);
 
 
 --
@@ -1067,7 +1072,7 @@ ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT "user_roles_userId_fkey" FOREIGN KEY ("userId") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
--- Completed on 2025-05-22 10:42:21 UTC
+-- Completed on 2025-05-23 06:37:58 UTC
 
 --
 -- PostgreSQL database dump complete
