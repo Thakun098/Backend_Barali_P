@@ -24,9 +24,9 @@ module.exports = (sequelize, Sequelize) => {
         }
     },
         paymentStatus: {
-            type: Sequelize.BOOLEAN,
+            type: Sequelize.ENUM('pending', 'paid', 'overdue', 'failed'),
             allowNull: true,
-            defaultValue: false
+            defaultValue: 'pending'
         },
         paymentMethod: {
             type: Sequelize.STRING,
@@ -37,6 +37,10 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.DECIMAL(10, 2),
             allowNull: true,
             defaultValue: 0.00
+        },
+        dueDate: {
+            type: Sequelize.DATE,
+            allowNull: true,
         },
         paymentDate: {
             type: Sequelize.DATE,

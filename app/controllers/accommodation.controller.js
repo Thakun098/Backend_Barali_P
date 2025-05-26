@@ -7,6 +7,7 @@ const Type = db.type;
 const Booking = db.booking;
 const Facility = db.facility;
 const Promotion = db.promotion;
+const Payment = db.payment;
 
 exports.getAll = async (req, res) => {
     try {
@@ -85,7 +86,7 @@ exports.getPopularRoom = async (req, res) => {
                 {
                     model: Booking,
                     as: "bookings",
-                    
+
                 }
 
             ],
@@ -151,6 +152,7 @@ exports.getSearch = async (req, res) => {
         if (!checkIn || !checkOut) {
             return res.status(400).json({ message: "Please provide checkIn and checkOut dates." });
         }
+        const now = new Date();
 
         // Find rooms with availability and matching filters
         const rooms = await Rooms.findAll({
@@ -174,7 +176,24 @@ exports.getSearch = async (req, res) => {
                                 checkOutDate: { [Op.gte]: checkOut }
                             }
                         ]
-                    }
+                    },
+                    include: [
+                        {
+                            model: Payment,
+                            as: "payments", 
+                            required: false,
+                            where: {
+                                [Op.or]: [
+                                    { paymentStatus: 'paid' },
+                                    {
+                                        paymentStatus: 'pending',
+                                        dueDate: { [Op.gt]: now }
+                                    }
+                                ]
+                            },
+                            attributes: []
+                        }
+                    ]
                 },
                 {
                     model: Type,
@@ -187,10 +206,16 @@ exports.getSearch = async (req, res) => {
                         {
                             model: Facility,
                             as: "facilities",
-                            attributes: ["name"],
+                            attributes: ["name", "icon_name"],
                             through: { attributes: [] }
                         }
                     ]
+                },
+                {
+                    model: Promotion,
+                    as: "promotions",
+                    attributes: ["id", "name", "discount"],
+                    through: []
                 }
             ],
             where: {
@@ -199,7 +224,8 @@ exports.getSearch = async (req, res) => {
                     Sequelize.literal(`"rooms"."max_children" >= ${children}`),
                     Sequelize.literal(`"rooms"."max_adults" + "rooms"."max_children" >= ${adults + children}`)
                 ]
-            }
+            },
+            order: [['id', 'ASC']]
         });
 
         res.status(200).json(rooms);
@@ -213,11 +239,12 @@ exports.getSearch = async (req, res) => {
 exports.getRoomCountByType = async (req, res) => {
     try {
         const { checkIn, checkOut } = req.query;
-        // console.log("checkIn", checkIn, "checkOut", checkOut);
 
         if (!checkIn || !checkOut) {
             return res.status(400).json({ message: "Please provide checkIn and checkOut dates" });
         }
+
+        const now = new Date();
 
         const types = await Type.findAll({
             attributes: ['id', 'name'],
@@ -234,12 +261,29 @@ exports.getRoomCountByType = async (req, res) => {
                             where: {
                                 checkedOut: false,
                                 checkInDate: { [Op.lt]: checkOut },
-                                checkOutDate: { [Op.gt]: checkIn }
-                            }
+                                checkOutDate: { [Op.gt]: checkIn },
+                            },
+                            include: [
+                                {
+                                    model: Payment,
+                                    as: "payments",
+                                    required: true,
+                                    where: {
+                                        [Op.or]: [
+                                            { paymentStatus: 'paid' },
+                                            {
+                                                paymentStatus: 'pending',
+                                                dueDate: { [Op.gt]: now }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
                         }
                     ]
                 }
-            ]
+            ],
+            order: [['id', 'DESC']]
         });
 
         const results = types.map(type => {
@@ -275,6 +319,8 @@ exports.getAvailableRooms = async (req, res) => {
     }
 
     try {
+        const now = new Date();
+
         // ดึงห้องทั้งหมด พร้อมประเภท และการจองที่อาจทับวัน
         const rooms = await Rooms.findAll({
             include: [
@@ -293,6 +339,22 @@ exports.getAvailableRooms = async (req, res) => {
                             }
                         ]
                     },
+                    include: [
+                        {
+                            model: Payment,
+                            as: "payments",
+                            required: true,
+                            where: {
+                                [Op.or]: [
+                                    { paymentStatus: 'paid' },
+                                    {
+                                        paymentStatus: 'pending',
+                                        dueDate: { [Op.gt]: now }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
                     attributes: ["id"]
                 },
                 {
@@ -324,7 +386,7 @@ exports.getAvailableRooms = async (req, res) => {
             // บวกจำนวนห้องทั้งหมดของประเภทนี้
             roomTypeMap[typeId].totalRooms += 1;
 
-            // ถ้าห้องนี้ถูกจองในช่วงวันนั้น
+            // ถ้าห้องนี้ถูกจองในช่วงวันนั้น และมี payment ที่ผ่านเงื่อนไข
             if (room.bookings.length > 0) {
                 roomTypeMap[typeId].bookedRoomId.push(room.id);
                 roomTypeMap[typeId].bookedRoomCount += 1;
@@ -342,19 +404,29 @@ exports.getAvailableRooms = async (req, res) => {
         console.error("Error checking available rooms:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
+
 
 
 
 exports.getAllTypes = async (req, res) => {
     try {
 
-        const types = await Type.findAll();
+        const types = await Type.findAll({
+            include: [
+                {
+                    model: Facility,
+                    as: "facilities",
+                    attributes: ["id", "name", "icon_name"],
+                    through: { attributes: [] }
+                }
+            ]
+        });
         res.status(200).json(types)
-        
+
     } catch (error) {
-        res.status(500).json({message: "error get types"})
-        
+        res.status(500).json({ message: "error get types" })
+
     }
 }
 

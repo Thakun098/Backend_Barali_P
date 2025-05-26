@@ -117,6 +117,7 @@ db.payment.belongsTo(db.user, {
 // One to One relationship
 // Payment Model
 db.payment.belongsTo(db.booking, {
+    as: 'bookings',
     foreignKey: {
         name: 'bookingId',
         allowNull: false,
@@ -127,6 +128,7 @@ db.payment.belongsTo(db.booking, {
 
 // Booking Model
 db.booking.hasOne(db.payment, {
+    as: 'payments',
     foreignKey: 'bookingId'
 });
 

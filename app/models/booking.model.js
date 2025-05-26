@@ -21,6 +21,14 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.DATE,
             allowNull: false,
         },
+        adults: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        children: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
         specialRequests: {
             type: Sequelize.TEXT,
             allowNull: true,

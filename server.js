@@ -10,18 +10,18 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
-// db.type.sync({ alter: true })
+// db.booking.sync({ alter: true })
 //    .then( () => {
 //         console.log("Table type Altered")
 
 //     }
 //     )
-// db.rooms.sync({ alter: true })
-//     .then( () => {
-//         console.log("Table room Altered ✅")
+db.booking.sync({ alter: true })
+    .then( () => {
+        console.log("Table booking Altered ✅")
 
-//     }
-//     )
+    }
+    )
 
 // db.facility.sync({ alter: true })
 //     .then( () => {
@@ -86,6 +86,7 @@ require("./app/routes/accommodation.routes")(app);
 require("./app/routes/activity.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/caltest.routes")(app);
+require("./app/routes/booking.routes")(app);
 
 const port = process.env.SERVER_PORT || 5000;
 app.listen(port, () => {
