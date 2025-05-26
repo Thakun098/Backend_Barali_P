@@ -180,7 +180,7 @@ exports.getSearch = async (req, res) => {
                     include: [
                         {
                             model: Payment,
-                            as: "payments", 
+                            as: "payments",
                             required: false,
                             where: {
                                 [Op.or]: [
@@ -273,7 +273,12 @@ exports.getRoomCountByType = async (req, res) => {
                                             { paymentStatus: 'paid' },
                                             {
                                                 paymentStatus: 'pending',
-                                                dueDate: { [Op.gt]: now }
+                                                dueDate: {
+                                                    [Op.and]: [
+                                                        { [Op.ne]: null },
+                                                        { [Op.gt]: now }
+                                                    ]
+                                                }
                                             }
                                         ]
                                     }

@@ -1,9 +1,11 @@
 const express = require("express");
 require("dotenv/config");
+const cron = require("node-cron");
 const app = express();
 const db = require("./app/models");
 const cors = require("cors");
 const path = require("path")
+const updateOverduePayments = require("./cron/updateOverduePayments")
 
 
 app.use(cors({ origin: "*" }));
@@ -16,12 +18,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 //     }
 //     )
-db.booking.sync({ alter: true })
-    .then( () => {
-        console.log("Table booking Altered ✅")
+// db.booking.sync({ alter: true })
+//     .then( () => {
+//         console.log("Table booking Altered ✅")
 
-    }
-    )
+//     }
+//     )
 
 // db.facility.sync({ alter: true })
 //     .then( () => {
@@ -74,6 +76,11 @@ db.sequelize.sync({ force: false })
         console.log("Database Sync...")
     })
 
+// Schedule the cron job to run every day at midnight
+cron.schedule("*/2 * * * *", () => {
+  updateOverduePayments();
+});
+
 app.get('/', (req, res) => {
     res.send('Hello Elyia');
     // console.log("Hello Elysia");
@@ -87,6 +94,7 @@ require("./app/routes/activity.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/caltest.routes")(app);
 require("./app/routes/booking.routes")(app);
+require("./app/routes/payment.routes")(app);
 
 const port = process.env.SERVER_PORT || 5000;
 app.listen(port, () => {
