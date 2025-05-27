@@ -4,8 +4,9 @@ const cron = require("node-cron");
 const app = express();
 const db = require("./app/models");
 const cors = require("cors");
-const path = require("path")
-const updateOverduePayments = require("./cron/updateOverduePayments")
+const path = require("path");
+const updateOverduePayments = require("./cron/updateOverduePayments");
+const updateCheckedOut = require("./cron/updateCheckedOut");
 
 
 app.use(cors({ origin: "*" }));
@@ -79,6 +80,7 @@ db.sequelize.sync({ force: false })
 // Schedule the cron job to run every day at midnight
 cron.schedule("*/2 * * * *", () => {
   updateOverduePayments();
+    updateCheckedOut();
 });
 
 app.get('/', (req, res) => {

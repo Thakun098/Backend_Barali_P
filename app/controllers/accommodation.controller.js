@@ -138,60 +138,20 @@ exports.getPopularRoom = async (req, res) => {
 
 exports.getSearch = async (req, res) => {
     try {
-        // Parse query parameters with fallback/default
         const checkIn = req.query.checkIn;
         const checkOut = req.query.checkOut;
         const adults = parseInt(req.query.adults) || 1;
         const children = parseInt(req.query.children) || 0;
         const selectedTypes = req.query.selectedTypes || "";
 
-        // Validate required dates
         if (!checkIn || !checkOut) {
             return res.status(400).json({ message: "Please provide checkIn and checkOut dates." });
         }
+
         const now = new Date();
 
-        // Find rooms with availability and matching filters
         const rooms = await Rooms.findAll({
             include: [
-                {
-                    model: Booking,
-                    as: "bookings",
-                    required: false,
-                    attributes: [],
-                    where: {
-                        checkedOut: false,
-                        [Op.or]: [
-                            {
-                                checkInDate: { [Op.between]: [checkIn, checkOut] }
-                            },
-                            {
-                                checkOutDate: { [Op.between]: [checkIn, checkOut] }
-                            },
-                            {
-                                checkInDate: { [Op.lte]: checkIn },
-                                checkOutDate: { [Op.gte]: checkOut }
-                            }
-                        ]
-                    },
-                    include: [
-                        {
-                            model: Payment,
-                            as: "payments",
-                            required: false,
-                            where: {
-                                [Op.or]: [
-                                    { paymentStatus: 'paid' },
-                                    {
-                                        paymentStatus: 'pending',
-                                        dueDate: { [Op.gt]: now }
-                                    }
-                                ]
-                            },
-                            attributes: []
-                        }
-                    ]
-                },
                 {
                     model: Type,
                     as: "type",
@@ -207,17 +167,40 @@ exports.getSearch = async (req, res) => {
                     through: []
                 },
                 {
-                            model: Facility,
-                            as: "facilities",
-                            attributes: ["name", "icon_name"],
-                            through: { attributes: [] }
-                        }
+                    model: Facility,
+                    as: "facilities",
+                    attributes: ["name", "icon_name"],
+                    through: { attributes: [] }
+                }
             ],
             where: {
                 [Op.and]: [
                     Sequelize.literal(`"rooms"."max_adults" >= ${adults}`),
                     Sequelize.literal(`"rooms"."max_children" >= ${children}`),
-                    Sequelize.literal(`"rooms"."max_adults" + "rooms"."max_children" >= ${adults + children}`)
+                    Sequelize.literal(`"rooms"."max_adults" + "rooms"."max_children" >= ${adults + children}`),
+
+                    //  Core logic: NOT EXISTS overlapping bookings
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1 FROM "bookings" AS b
+                            INNER JOIN "payments" AS p ON p."bookingId" = b."id"
+                            WHERE b."roomId" = "rooms"."id"
+                              AND b."checkedOut" = false
+                              AND (
+                                  b."checkInDate" BETWEEN '${checkIn}' AND '${checkOut}'
+                                  OR b."checkOutDate" BETWEEN '${checkIn}' AND '${checkOut}'
+                                  OR (b."checkInDate" <= '${checkIn}' AND b."checkOutDate" >= '${checkOut}')
+                              )
+                              AND (
+                                  p."paymentStatus" = 'paid'
+                                  OR (
+                                      p."paymentStatus" = 'pending'
+                                      AND p."dueDate" IS NOT NULL
+                                      AND p."dueDate" > '${now.toISOString()}'
+                                  )
+                              )
+                        )
+                    `)
                 ]
             },
             order: [['id', 'ASC']]
