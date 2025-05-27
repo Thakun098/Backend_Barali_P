@@ -41,14 +41,14 @@ db.user.belongsToMany(db.role, {
     through: "user_roles"
 });
 // Facility
-db.type.belongsToMany(db.facility, {
-    through: "type_facilities",
+db.rooms.belongsToMany(db.facility, {
+    through: "room_facilities",
     as: "facilities",
-    foreignKey: "typeId"
+    foreignKey: "roomId"
 });
-db.facility.belongsToMany(db.type, {
-    through: "type_facilities",
-    as: "types",
+db.facility.belongsToMany(db.rooms, {
+    through: "room_facilities",
+    as: "rooms",
     foreignKey: "facilityId"
 });
 
@@ -107,10 +107,12 @@ db.booking.belongsTo(db.rooms, {
     foreignKey: "roomId",
 });
 db.user.hasMany(db.payment, {
+    as: "payments",
     foreignKey: "userId",
     onDelete: "RESTRICT",
 });
 db.payment.belongsTo(db.user, {
+    as: "user",
     foreignKey: "userId",
     onDelete: "RESTRICT",
 });

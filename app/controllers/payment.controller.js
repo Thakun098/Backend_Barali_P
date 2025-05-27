@@ -10,6 +10,7 @@ const Type = db.type;
 const Booking = db.booking;
 const Facility = db.facility;
 const Payment = db.payment;
+const User = db.user;
 
 exports.updatePaymentStatus = async (req, res) => {
     const id = req.params.id;
@@ -37,5 +38,58 @@ exports.updatePaymentStatus = async (req, res) => {
         res.status(500).json({ message: "Error updating payment status" });
     }
 }
+
+exports.getPaymentById = async (req, res) => {
+    const id = req.params.id;
+    if (!id) {
+        return res.status(400).json({ message: "กรุณาระบุ ID การชำระเงิน" });
+    }
+
+    try {
+        const payment = await Payment.findByPk(id, {
+            include: [
+                {
+                    model: Booking,
+                    as: 'bookings',
+                    include: [
+                        {
+                            model: Rooms,
+                            as: 'room',
+                            include: [
+                                {
+                                    model: Type,
+                                    as: 'type',
+                                    attributes: ['id', 'name', 'room_size', 'view', 'bed_type']
+                                },
+                                {
+                                    model: Facility,
+                                    as: 'facilities'
+                                }       
+                            ],
+                            attributes: ['id', 'type_id', 'description', 'price_per_night', 'image_name']
+                        },
+                        
+                    ],
+                    attributes: ['id', 'userId', 'roomId','checkInDate', 'checkOutDate', 'specialRequests', 'checkedIn', 'checkedOut']
+                },
+                {
+                    model: User,
+                    as: 'user',
+                    attributes: ['id', 'firstname', 'lastname', 'email', 'phone']
+                }
+            ]
+        });
+
+        if (!payment) {
+            return res.status(404).json({ message: "ไม่พบข้อมูลการชำระเงิน" });
+        }
+
+        res.status(200).json(payment);
+    } catch (error) {
+        console.error("Error fetching payment:", error);
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลการชำระเงิน" });
+    }
+};
+
 
 

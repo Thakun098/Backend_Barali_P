@@ -17,17 +17,16 @@ exports.getAll = async (req, res) => {
                     model: Type,
                     as: "type",
                     attributes: ["name", "room_size", "view", "bed_type"],
-                    include: [
-                        {
-                            model: Facility,
-                            as: "facilities",
-                            attributes: ["name"],
-                            through: {
-                                attributes: [] // Exclude the join table attributes
-                            }
-                        }
-                    ]
+
                 },
+                {
+                    model: Facility,
+                    as: "facilities",
+                    attributes: ["name"],
+                    through: {
+                        attributes: [] // Exclude the join table attributes
+                    }
+                }
             ],
         });
         res.status(200).json(room);
@@ -44,16 +43,6 @@ exports.getPromotion = async (req, res) => {
                     model: Type,
                     as: "type",
                     attributes: ["name"],
-                    include: [
-                        {
-                            model: Facility,
-                            as: "facilities",
-                            attributes: ["name"],
-                            through: {
-                                attributes: [] // Exclude the join table attributes
-                            }
-                        }
-                    ]
                 },
                 {
                     model: Promotion,
@@ -61,6 +50,14 @@ exports.getPromotion = async (req, res) => {
                     required: true, //  ให้ return เฉพาะที่ JOIN แล้วมี promotion
                     through: { attributes: [] }, // ซ่อนข้อมูลในตาราง join
                     attributes: ["name", "discount"]
+                },
+                {
+                    model: Facility,
+                    as: "facilities",
+                    attributes: ["name"],
+                    through: {
+                        attributes: [] // Exclude the join table attributes
+                    }
                 }
             ]
         });

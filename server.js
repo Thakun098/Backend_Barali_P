@@ -73,7 +73,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 db.sequelize.sync({ force: false })
     .then(() => {
-        console.log("Database Sync...")
+        console.log("✅ Database Sync...")
     })
 
 // Schedule the cron job to run every day at midnight
