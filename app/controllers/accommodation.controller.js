@@ -199,21 +199,19 @@ exports.getSearch = async (req, res) => {
                     where: selectedTypes ? {
                         name: { [Op.like]: `%${selectedTypes}%` }
                     } : undefined,
-                    include: [
-                        {
-                            model: Facility,
-                            as: "facilities",
-                            attributes: ["name", "icon_name"],
-                            through: { attributes: [] }
-                        }
-                    ]
                 },
                 {
                     model: Promotion,
                     as: "promotions",
                     attributes: ["id", "name", "discount"],
                     through: []
-                }
+                },
+                {
+                            model: Facility,
+                            as: "facilities",
+                            attributes: ["name", "icon_name"],
+                            through: { attributes: [] }
+                        }
             ],
             where: {
                 [Op.and]: [
@@ -414,16 +412,7 @@ exports.getAvailableRooms = async (req, res) => {
 exports.getAllTypes = async (req, res) => {
     try {
 
-        const types = await Type.findAll({
-            include: [
-                {
-                    model: Facility,
-                    as: "facilities",
-                    attributes: ["id", "name", "icon_name"],
-                    through: { attributes: [] }
-                }
-            ]
-        });
+        const types = await Type.findAll();
         res.status(200).json(types)
 
     } catch (error) {
