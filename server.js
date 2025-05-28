@@ -9,6 +9,7 @@ const updateOverduePayments = require("./cron/updateOverduePayments");
 const updateCheckedOut = require("./cron/updateCheckedOut");
 
 
+
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
@@ -80,7 +81,7 @@ db.sequelize.sync({ force: false })
 // Schedule the cron job to run every day at midnight
 cron.schedule("*/2 * * * *", () => {
   updateOverduePayments();
-    updateCheckedOut();
+    // updateCheckedOut();
 });
 
 app.get('/', (req, res) => {

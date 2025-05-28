@@ -295,9 +295,9 @@ exports.getRoomCountByType = async (req, res) => {
 
 
 exports.getAvailableRooms = async (req, res) => {
-    const { checkIn, checkOut } = req.query;
+    const { formattedCheckIn, formattedCheckOut } = req.query;
 
-    if (!checkIn || !checkOut) {
+    if (!formattedCheckIn || !formattedCheckOut) {
         return res.status(400).json({ message: "Please provide checkIn and checkOut dates" });
     }
 
@@ -314,11 +314,11 @@ exports.getAvailableRooms = async (req, res) => {
                     where: {
                         checkedOut: false,
                         [Op.or]: [
-                            { checkInDate: { [Op.between]: [checkIn, checkOut] } },
-                            { checkOutDate: { [Op.between]: [checkIn, checkOut] } },
+                            { checkInDate: { [Op.between]: [formattedCheckIn, formattedCheckOut] } },
+                            { checkOutDate: { [Op.between]: [formattedCheckIn, formattedCheckOut] } },
                             {
-                                checkInDate: { [Op.lte]: checkIn },
-                                checkOutDate: { [Op.gte]: checkOut }
+                                checkInDate: { [Op.lte]: formattedCheckIn },
+                                checkOutDate: { [Op.gte]: formattedCheckOut }
                             }
                         ]
                     },
@@ -388,9 +388,6 @@ exports.getAvailableRooms = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
-
-
-
 
 exports.getAllTypes = async (req, res) => {
     try {

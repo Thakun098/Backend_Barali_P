@@ -92,6 +92,7 @@ db.user.hasMany(db.booking, {
 });
 
 db.booking.belongsTo(db.user, {
+    as: "user",
     foreignKey: "userId",
     onDelete: "RESTRICT",
 });
