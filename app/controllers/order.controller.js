@@ -175,6 +175,12 @@ exports.getPaymentsByUserId = async (req, res) => {
                   as: 'facilities',
                   attributes: ['id', 'name', 'icon_name'],
                   through: { attributes: [] }
+                },
+                {
+                  model: Promotion,
+                  as: 'promotions',
+                  attributes: ['id', 'name', 'discount'],
+                  through: { attributes: [] }
                 }
               ],
               attributes: ['id', 'type_id', 'description', 'price_per_night', 'image_name']
