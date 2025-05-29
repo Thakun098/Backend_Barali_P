@@ -27,7 +27,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 //     }
 //     )
 
-// db.facility.sync({ alter: true })
+// db.payment.sync({ alter: true })
 //     .then( () => {
 //         console.log("facilities booking Altered ✅")
 //     }

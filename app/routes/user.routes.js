@@ -8,5 +8,6 @@ module.exports = (app) => {
 
     app.get("/api/user/order/:userId", orderController.getOrderById);
     app.get("/api/user/orders/all/:userId", orderController.getOrdersByUserId);
+    app.get("/api/user/orders/:userId", orderController.getPaymentsByUserId);
 
 }

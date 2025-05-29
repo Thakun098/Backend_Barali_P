@@ -13,13 +13,21 @@ const extraBedForChildren = 749;
 
 exports.calculatePromotion = async (req, res) => {
     try {
-        const { roomId, checkInDate, checkOutDate } = req.query;
+        const {checkInDate, checkOutDate } = req.query;
+        const roomId = parseInt(req.query.roomId);
         const adults = parseInt(req.query.adults) || 1;
         const children = parseInt(req.query.children) || 0;
+
+if (isNaN(roomId) || roomId <= 0) {
+    return res.status(400).json({ message: "Invalid room ID" });
+}
 
         if (!roomId || !checkInDate || !checkOutDate) {
             return res.status(400).json({ message: "Missing required parameters" });
         }
+        if (new Date(checkInDate) >= new Date(checkOutDate)) {
+    return res.status(400).json({ message: "Invalid check-in/check-out dates" });
+}
 
         //  ไม่รองรับกรณีผู้ใหญ่ 2 เด็ก 2
         if (adults === 2 && children === 2) {
@@ -39,6 +47,9 @@ exports.calculatePromotion = async (req, res) => {
         if (!room) {
             return res.status(404).json({ message: "Room not found" });
         }
+        if (!room.price_per_night) {
+    return res.status(400).json({ message: "Room price is not defined." });
+}
 
         const checkIn = new Date(checkInDate);
         const checkOut = new Date(checkOutDate);
@@ -46,7 +57,7 @@ exports.calculatePromotion = async (req, res) => {
 
         //  คิดส่วนลดจากผู้ใหญ่ 2 คนแรกเท่านั้น
         const basePricePerNight = room.price_per_night;
-        const baseNightsPrice = basePricePerNight * numberOfNights;
+        const priceWithoutDiscount = basePricePerNight * numberOfNights;
 
         const promotions = await db.promotion.findAll({
             include: [{ model: db.rooms, as: "rooms", where: { id: roomId } }],
@@ -54,7 +65,7 @@ exports.calculatePromotion = async (req, res) => {
         });
 
         let discountPercent = promotions.reduce((sum, promo) => sum + promo.discount, 0);
-        let discountedPrice = baseNightsPrice;
+        let discountedPrice = priceWithoutDiscount;
 
         if (discountPercent > 0) {
             // คิดเฉพาะสำหรับผู้ใหญ่ 2 คนแรกเท่านั้น
@@ -84,8 +95,8 @@ exports.calculatePromotion = async (req, res) => {
 
         return res.status(200).json({
             roomInfo: room,
-            originalPrice: baseNightsPrice,
-            discountAmount: baseNightsPrice - discountedPrice,
+            originalPrice: priceWithoutDiscount,
+            discountAmount: priceWithoutDiscount - discountedPrice,
             adults,
             children,
             extraAdultCount,

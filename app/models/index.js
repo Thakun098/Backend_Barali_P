@@ -117,23 +117,36 @@ db.payment.belongsTo(db.user, {
     foreignKey: "userId",
     onDelete: "RESTRICT",
 });
-// One to One relationship
-// Payment Model
-db.payment.belongsTo(db.booking, {
-    as: 'bookings',
-    foreignKey: {
-        name: 'bookingId',
-        allowNull: false,
-        unique: true
-    },
-    onDelete: 'CASCADE'
+
+// Payment hasMany Bookings
+db.payment.hasMany(db.booking, {
+  as: 'bookings',
+  foreignKey: 'paymentId'
 });
 
-// Booking Model
-db.booking.hasOne(db.payment, {
-    as: 'payments',
-    foreignKey: 'bookingId'
+// Booking belongsTo Payment
+db.booking.belongsTo(db.payment, {
+  as: 'payment',
+  foreignKey: 'paymentId'
 });
+
+// One to One relationship
+// Payment Model
+// db.payment.belongsTo(db.booking, {
+//     as: 'bookings',
+//     foreignKey: {
+//         name: 'bookingId',
+//         allowNull: false,
+//         unique: true
+//     },
+//     onDelete: 'CASCADE'
+// });
+
+// // Booking Model
+// db.booking.hasOne(db.payment, {
+//     as: 'payments',
+//     foreignKey: 'bookingId'
+// });
 
 
 

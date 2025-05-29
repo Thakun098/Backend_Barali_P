@@ -17,7 +17,7 @@ exports.updatePaymentStatus = async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: "กรุณาระบุ ID การชำระเงิน" });
     }
-    
+
     try {
         const payment = await Payment.findByPk(id);
         if (!payment) {
@@ -63,14 +63,16 @@ exports.getPaymentById = async (req, res) => {
                                 },
                                 {
                                     model: Facility,
-                                    as: 'facilities'
-                                }       
+                                    as: 'facilities',
+                                    attributes: ['id', 'name', 'icon_name'],
+                                    through: { attributes: [] }
+                                }
                             ],
                             attributes: ['id', 'type_id', 'description', 'price_per_night', 'image_name']
                         },
-                        
+
                     ],
-                    attributes: ['id', 'userId', 'roomId','checkInDate', 'checkOutDate', 'specialRequests', 'checkedIn', 'checkedOut']
+                    attributes: ['id', 'userId', 'roomId', 'checkInDate', 'checkOutDate', 'specialRequests', 'checkedIn', 'checkedOut', 'paymentId']
                 },
                 {
                     model: User,
@@ -83,8 +85,18 @@ exports.getPaymentById = async (req, res) => {
         if (!payment) {
             return res.status(404).json({ message: "ไม่พบข้อมูลการชำระเงิน" });
         }
+        
 
-        res.status(200).json(payment);
+
+        // ส่งกลับในรูปแบบที่ frontend ใช้งานได้ง่าย
+        res.status(200).json({
+            id: payment.id,
+            paymentStatus: payment.paymentStatus,
+            amount: payment.amount,
+            dueDate: payment.dueDate,
+            userId: payment.userId,
+            bookings: payment.bookings || [],
+        });
     } catch (error) {
         console.error("Error fetching payment:", error);
         res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลการชำระเงิน" });

@@ -138,17 +138,13 @@ exports.getPopularRoom = async (req, res) => {
 
 exports.getSearch = async (req, res) => {
     try {
-        const checkIn = req.query.checkIn;
-        const checkOut = req.query.checkOut;
-        const adults = parseInt(req.query.adults) || 1;
-        const children = parseInt(req.query.children) || 0;
-        const selectedTypes = req.query.selectedTypes || "";
+        const { checkIn, checkOut, adults = 1, children = 0, selectedTypes = "" } = req.query;
 
         if (!checkIn || !checkOut) {
             return res.status(400).json({ message: "Please provide checkIn and checkOut dates." });
         }
 
-        const now = new Date();
+        const now = new Date().toISOString();
 
         const rooms = await Rooms.findAll({
             include: [
@@ -164,26 +160,24 @@ exports.getSearch = async (req, res) => {
                     model: Promotion,
                     as: "promotions",
                     attributes: ["id", "name", "discount"],
-                    through: []
+                    through: { attributes: [] },
                 },
                 {
                     model: Facility,
                     as: "facilities",
                     attributes: ["name", "icon_name"],
-                    through: { attributes: [] }
+                    through: { attributes: [] },
                 }
             ],
             where: {
                 [Op.and]: [
-                    Sequelize.literal(`"rooms"."max_adults" >= ${adults}`),
-                    Sequelize.literal(`"rooms"."max_children" >= ${children}`),
-                    Sequelize.literal(`"rooms"."max_adults" + "rooms"."max_children" >= ${adults + children}`),
-
-                    //  Core logic: NOT EXISTS overlapping bookings
+                    { max_adults: { [Op.gte]: adults } },
+                    { max_children: { [Op.gte]: children } },
+                    // Use NOT EXISTS logic to exclude overlapping bookings
                     Sequelize.literal(`
                         NOT EXISTS (
                             SELECT 1 FROM "bookings" AS b
-                            INNER JOIN "payments" AS p ON p."bookingId" = b."id"
+                            INNER JOIN "payments" AS p ON b."paymentId" = p."id"
                             WHERE b."roomId" = "rooms"."id"
                               AND b."checkedOut" = false
                               AND (
@@ -196,7 +190,7 @@ exports.getSearch = async (req, res) => {
                                   OR (
                                       p."paymentStatus" = 'pending'
                                       AND p."dueDate" IS NOT NULL
-                                      AND p."dueDate" > '${now.toISOString()}'
+                                      AND p."dueDate" > '${now}'
                                   )
                               )
                         )
@@ -206,10 +200,10 @@ exports.getSearch = async (req, res) => {
             order: [['id', 'ASC']]
         });
 
-        res.status(200).json(rooms);
+        return res.status(200).json(rooms);
     } catch (error) {
         console.error("Search error:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
@@ -244,7 +238,7 @@ exports.getRoomCountByType = async (req, res) => {
                             include: [
                                 {
                                     model: Payment,
-                                    as: "payments",
+                                    as: "payment",
                                     required: true,
                                     where: {
                                         [Op.or]: [
@@ -325,7 +319,7 @@ exports.getAvailableRooms = async (req, res) => {
                     include: [
                         {
                             model: Payment,
-                            as: "payments",
+                            as: "payment",
                             required: true,
                             where: {
                                 [Op.or]: [
