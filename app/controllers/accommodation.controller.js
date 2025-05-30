@@ -1,6 +1,9 @@
 const db = require("../models/");
 const Sequelize = require("sequelize");
 const { Op, where } = require("sequelize");
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+dayjs.extend(utc);
 
 const Rooms = db.rooms;
 const Type = db.type;
@@ -36,13 +39,16 @@ exports.getAll = async (req, res) => {
 };
 
 exports.getPromotion = async (req, res) => {
+    const checkIn = dayjs().add(1, 'day').format('YYYY-MM-DD');
+    const checkOut = dayjs().add(10, 'day').format('YYYY-MM-DD'); 
+    const now = dayjs().format('YYYY-MM-DD');
     try {
         const promotion = await Rooms.findAll({
             include: [
                 {
                     model: Type,
                     as: "type",
-                    attributes: ["name"],
+                    attributes: ["name", "room_size", "view", "bed_type"],
                 },
                 {
                     model: Promotion,
@@ -58,6 +64,37 @@ exports.getPromotion = async (req, res) => {
                     through: {
                         attributes: [] // Exclude the join table attributes
                     }
+                },
+                {
+                    model: Booking,
+                    as: "bookings",
+                    required: true,
+                    where: {
+                        checkedOut: false,
+                        checkInDate: { [Op.lt]: checkOut },
+                        checkOutDate: { [Op.gt]: checkIn },
+                    },
+                    include: [
+                        {
+                            model: Payment,
+                            as: "payment",
+                            required: true,
+                            where: {
+                                [Op.or]: [
+                                    { paymentStatus: 'paid' },
+                                    {
+                                        paymentStatus: 'pending',
+                                        dueDate: {
+                                            [Op.and]: [
+                                                { [Op.ne]: null },
+                                                { [Op.gt]: now }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
                 }
             ]
         });
@@ -83,7 +120,6 @@ exports.getPopularRoom = async (req, res) => {
                 {
                     model: Booking,
                     as: "bookings",
-
                 }
 
             ],

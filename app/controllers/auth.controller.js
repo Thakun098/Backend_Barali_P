@@ -15,7 +15,7 @@ exports.signin = (req, res) => {
     // console.log("Length of password: " + length);
     
     const { email, password } = req.body
-    console.log(email, password)
+    // console.log(email, password)
     User.findOne({
         where: {
             email: req.body.email
