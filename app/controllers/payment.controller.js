@@ -72,7 +72,7 @@ exports.getPaymentById = async (req, res) => {
                         },
 
                     ],
-                    attributes: ['id', 'userId', 'roomId', 'checkInDate', 'checkOutDate', 'specialRequests', 'checkedIn', 'checkedOut', 'paymentId']
+                    attributes: ['id', 'userId', 'roomId', 'checkInDate', 'checkOutDate', 'specialRequests', 'checkedIn', 'checkedOut', 'paymentId', 'adults', 'children']
                 },
                 {
                     model: User,
@@ -91,11 +91,16 @@ exports.getPaymentById = async (req, res) => {
         // ส่งกลับในรูปแบบที่ frontend ใช้งานได้ง่าย
         res.status(200).json({
             id: payment.id,
+            checkIn: payment.bookings[0]?.checkInDate,
+            checkOut: payment.bookings[0]?.checkOutDate,
+            adults: payment.bookings[0]?.adults,
+            children: payment.bookings[0]?.children,
             paymentStatus: payment.paymentStatus,
-            amount: payment.amount,
+            totalPrice: payment.amount,
             dueDate: payment.dueDate,
             userId: payment.userId,
-            bookings: payment.bookings || [],
+            user: payment.user,
+            roomIds: payment.bookings?.map(b => b.id),
         });
     } catch (error) {
         console.error("Error fetching payment:", error);
