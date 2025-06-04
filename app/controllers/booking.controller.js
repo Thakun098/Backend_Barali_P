@@ -82,12 +82,16 @@ exports.makeBooking = async (req, res) => {
 
         res.status(200).json({
             message: 'Bookings & Payment created successfully',
-            paymentId: payment.id,
-            bookingIds: bookings.map(b => b.id),
+            id: payment.id,
+            roomIds: bookings.map(b => b.id),
             paymentStatus: payment.paymentStatus,
-            amount: payment.amount,
+            totalPrice: payment.amount,
             dueDate: payment.dueDate,
             userId: payment.userId,
+            checkIn: checkInDate,        
+            checkOut: checkOutDate,      
+            adults,                      
+            children                     
         });
 
     } catch (err) {
