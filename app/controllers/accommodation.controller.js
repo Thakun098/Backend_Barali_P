@@ -39,8 +39,8 @@ exports.getAll = async (req, res) => {
 };
 
 exports.getPromotion = async (req, res) => {
-    const checkIn = dayjs().add(1, 'day').format('YYYY-MM-DD');
-    const checkOut = dayjs().add(10, 'day').format('YYYY-MM-DD'); 
+    // const checkIn = dayjs().add(1, 'day').format('YYYY-MM-DD');
+    // const checkOut = dayjs().add(10, 'day').format('YYYY-MM-DD'); 
     const now = dayjs().format('YYYY-MM-DD');
     try {
         const promotion = await Rooms.findAll({
@@ -65,37 +65,6 @@ exports.getPromotion = async (req, res) => {
                         attributes: [] // Exclude the join table attributes
                     }
                 },
-                {
-                    model: Booking,
-                    as: "bookings",
-                    required: true,
-                    where: {
-                        checkedOut: false,
-                        checkInDate: { [Op.lt]: checkOut },
-                        checkOutDate: { [Op.gt]: checkIn },
-                    },
-                    include: [
-                        {
-                            model: Payment,
-                            as: "payment",
-                            required: true,
-                            where: {
-                                [Op.or]: [
-                                    { paymentStatus: 'paid' },
-                                    {
-                                        paymentStatus: 'pending',
-                                        dueDate: {
-                                            [Op.and]: [
-                                                { [Op.ne]: null },
-                                                { [Op.gt]: now }
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
             ]
         });
         res.status(200).json(promotion);
@@ -120,12 +89,25 @@ exports.getPopularRoom = async (req, res) => {
                 {
                     model: Booking,
                     as: "bookings",
+                },
+                {
+                    model: Promotion,
+                    as: "promotions",
+                    through: { attributes: [] },
+                },
+                {
+                    model: Facility,
+                    as: "facilities",
+                    attributes: ["name"],
+                    through: {
+                        attributes: [] // Exclude the join table attributes
+                    }
                 }
 
             ],
         });
         // res.send(rooms)
-        const popularRooms = rooms.map(room => {
+            const popularRooms = rooms.map(room => {
             const roomData = room.toJSON();
             const bookings = roomData.bookings || [];
 
@@ -419,6 +401,72 @@ exports.getAvailableRooms = async (req, res) => {
     }
 };
 
+exports.getAvailableRoomsWithPromotion = async (req, res) => {
+    try {
+        // Use params if provided, otherwise fallback to tomorrow and the day after tomorrow
+        let { checkIn, checkOut } = req.query;
+        if (!checkIn || !checkOut) {
+            checkIn = dayjs().add(1, 'day').format('YYYY-MM-DD');
+            checkOut = dayjs().add(2, 'day').format('YYYY-MM-DD');
+        }
+        const now = new Date().toISOString();
+
+        const rooms = await Rooms.findAll({
+            include: [
+                {
+                    model: Promotion,
+                    as: "promotions",
+                    required: true,
+                    attributes: ["id", "name", "discount"],
+                    through: { attributes: [] },
+                },
+                {
+                    model: Type,
+                    as: "type",
+                    attributes: ["name", "room_size", "view", "bed_type"],
+                },
+                {
+                    model: Facility,
+                    as: "facilities",
+                    attributes: ["name", "icon_name"],
+                    through: { attributes: [] },
+                }
+            ],
+            where: {
+                [Op.and]: [
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1 FROM "bookings" AS b
+                            INNER JOIN "payments" AS p ON b."paymentId" = p."id"
+                            WHERE b."roomId" = "rooms"."id"
+                              AND b."checkedOut" = false
+                              AND (
+                                  b."checkInDate" BETWEEN '${checkIn}' AND '${checkOut}'
+                                  OR b."checkOutDate" BETWEEN '${checkIn}' AND '${checkOut}'
+                                  OR (b."checkInDate" <= '${checkIn}' AND b."checkOutDate" >= '${checkOut}')
+                              )
+                              AND (
+                                  p."paymentStatus" = 'paid'
+                                  OR (
+                                      p."paymentStatus" = 'pending'
+                                      AND p."dueDate" IS NOT NULL
+                                      AND p."dueDate" > '${now}'
+                                  )
+                              )
+                        )
+                    `)
+                ]
+            },
+            order: [['id', 'ASC']]
+        });
+
+        return res.status(200).json(rooms);
+    } catch (error) {
+        console.error("Error fetching available rooms with promotion:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 exports.getAllTypes = async (req, res) => {
     try {
 
@@ -430,4 +478,6 @@ exports.getAllTypes = async (req, res) => {
 
     }
 }
+
+
 

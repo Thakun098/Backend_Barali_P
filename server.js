@@ -81,7 +81,7 @@ db.sequelize.sync({ force: false })
 // Schedule the cron job to run every day at midnight
 cron.schedule("*/2 * * * *", () => {
   updateOverduePayments();
-    // updateCheckedOut();
+    updateCheckedOut();
 });
 
 app.get('/', (req, res) => {
