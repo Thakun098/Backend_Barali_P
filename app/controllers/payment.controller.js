@@ -11,6 +11,7 @@ const Booking = db.booking;
 const Facility = db.facility;
 const Payment = db.payment;
 const User = db.user;
+const Promotion = db.promotion;
 
 exports.updatePaymentStatus = async (req, res) => {
     const id = req.params.id;
@@ -66,7 +67,14 @@ exports.getPaymentById = async (req, res) => {
                                     as: 'facilities',
                                     attributes: ['id', 'name', 'icon_name'],
                                     through: { attributes: [] }
-                                }
+                                },
+                                {
+                                    model: Promotion,
+                                    as: 'promotions',
+                                    attributes: ['id', 'name', 'discount'],
+                                    through: { attributes: [] }
+                                },
+
                             ],
                             attributes: ['id', 'type_id', 'description', 'price_per_night', 'image_name']
                         },
@@ -101,6 +109,8 @@ exports.getPaymentById = async (req, res) => {
             userId: payment.userId,
             user: payment.user,
             roomIds: payment.bookings?.map(b => b.id),
+            promotions: payment.bookings?.map(b => b.room.promotions),
+            roomType: payment.bookings?.map(b => b.room.type),
         });
     } catch (error) {
         console.error("Error fetching payment:", error);
