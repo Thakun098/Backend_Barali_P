@@ -27,11 +27,11 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 //     }
 //     )
 
-// db.payment.sync({ alter: true })
-//     .then( () => {
-//         console.log("facilities booking Altered ✅")
-//     }
-//     )
+db.receipt.sync({ alter: true })
+    .then( () => {
+        console.log("receipt Altered ✅")
+    }
+    )
 
 
 

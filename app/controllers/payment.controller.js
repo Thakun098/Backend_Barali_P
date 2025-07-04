@@ -12,6 +12,7 @@ const Facility = db.facility;
 const Payment = db.payment;
 const User = db.user;
 const Promotion = db.promotion;
+const Receipt = db.receipt;
 
 exports.updatePaymentStatus = async (req, res) => {
     const id = req.params.id;
@@ -118,5 +119,38 @@ exports.getPaymentById = async (req, res) => {
     }
 };
 
+exports.getReceiptById = async (req, res) => {
+    const id = req.params.id;
+    if (!id) {
+        return res.status(400).json({ message: "กรุณาระบุ ID การชำระเงิน" });
+    }
+
+    try {
+        // ดึงข้อมูลจาก receipt table
+        const receipt = await Receipt.findOne({ where: { paymentId: id } });
+
+        if (!receipt) {
+            return res.status(404).json({ message: "ไม่พบข้อมูลใบเสร็จสำหรับการชำระเงินนี้" });
+        }
+
+        res.status(200).json({
+            id: receipt.paymentId,
+            checkIn: receipt.checkIn,
+            checkOut: receipt.checkOut,
+            adults: receipt.adults,
+            children: receipt.children,
+            paymentStatus: receipt.paymentStatus,
+            totalPrice: receipt.totalPrice,
+            dueDate: receipt.dueDate,
+            userId: receipt.userId,
+            roomIds: receipt.roomIds,
+            promotions: receipt.promotions,
+            roomType: receipt.roomType,
+        });
+    } catch (error) {
+        console.error("Error fetching receipt:", error);
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลใบเสร็จ" });
+    }
+};
 
 

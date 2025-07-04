@@ -11,6 +11,7 @@ const Booking = db.booking;
 const Facility = db.facility;
 const Payment = db.payment;
 const Promotion = db.promotion;
+const Receipt = db.receipt; // เพิ่มบรรทัดนี้ด้านบนสุด
 
 exports.makeBooking = async (req, res) => {
   try {
@@ -111,6 +112,25 @@ exports.makeBooking = async (req, res) => {
       promotions: populatedBookings.map(b => b.room.promotions || []),
       roomType: populatedBookings.map(b => b.room.type || null),
     };
+
+    // เพิ่มส่วนนี้เพื่อบันทึกลง receipt
+    await Receipt.create({
+      paymentId: payment.id.toString(),
+      roomIds: formattedResponse.roomIds,
+      paymentStatus: formattedResponse.paymentStatus,
+      totalPrice: formattedResponse.totalPrice,
+      dueDate: formattedResponse.dueDate,
+      userId: formattedResponse.userId,
+      checkIn: formattedResponse.checkIn,
+      checkOut: formattedResponse.checkOut,
+      adults: formattedResponse.adults,
+      children: formattedResponse.children,
+      promotions: formattedResponse.promotions.flat().map(p => ({
+    name: p.name,
+    discount: p.discount
+  })).filter(p => p.name && p.discount !== undefined), // ดึงเฉพาะ name กับ discount
+      roomType: formattedResponse.roomType.map(t => t ? t.name : null).filter(Boolean), // ดึงเฉพาะชื่อ type
+    });
 
     return res.status(200).json(formattedResponse);
   } catch (err) {
